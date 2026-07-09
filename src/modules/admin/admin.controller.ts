@@ -25,7 +25,6 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { AddMovieFileDto } from './dto/add-movie-file.dto';
 
-// Rasm (poster) fayllari uchun multer sozlamasi
 const posterStorage = diskStorage({
   destination: './src/uploads/posters',
   filename: (req, file, cb) => {
@@ -33,7 +32,6 @@ const posterStorage = diskStorage({
   },
 });
 
-// Faqat rasm fayllariga ruxsat beruvchi filter
 const imageFileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   const allowed = ['jpg', 'jpeg', 'png', 'webp'];
   if (!allowed.includes(file.mimetype.split('/')[1])) {
@@ -42,7 +40,6 @@ const imageFileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   cb(null, true);
 };
 
-// Video fayllar uchun multer sozlamasi
 const movieFileStorage = diskStorage({
   destination: './src/uploads/movies',
   filename: (req, file, cb) => {
@@ -50,7 +47,6 @@ const movieFileStorage = diskStorage({
   },
 });
 
-// Faqat video fayllariga ruxsat beruvchi filter
 const videoFileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   const allowed = ['mp4', 'x-matroska', 'webm', 'quicktime', 'x-msvideo'];
   if (!allowed.includes(file.mimetype.split('/')[1])) {
@@ -61,7 +57,7 @@ const videoFileFilter = (req: any, file: Express.Multer.File, cb: any) => {
 
 @ApiTags('Admin - Movies')
 @ApiBearerAuth()
-@UseGuards(AuthGuard, RoleGuard) // Avval login tekshiriladi (AuthGuard), keyin rol (RoleGuard)
+@UseGuards(AuthGuard, RoleGuard)
 @Roles(Role.ADMIN, Role.SUPERADMIN)
 @Controller('admin/movies')
 export class AdminController {
@@ -100,6 +96,7 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Kinoni yangilash (PUT /api/admin/movies/:movie_id)' })
+  @ApiBody({ type: UpdateMovieDto })
   @Put(':movie_id')
   update(@Param('movie_id') movieId: string, @Body() payload: UpdateMovieDto) {
     return this.adminService.update(movieId, payload);
@@ -110,6 +107,7 @@ export class AdminController {
   remove(@Param('movie_id') movieId: string) {
     return this.adminService.remove(movieId);
   }
+
 
   @ApiOperation({
     summary: 'Kinoga video fayl yuklash (POST /api/admin/movies/:movie_id/files)',

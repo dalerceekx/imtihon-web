@@ -12,8 +12,6 @@ import {
   Min,
 } from 'class-validator';
 
-// Multipart/form-data orqali "category_ids" massiv sifatida ("id1","id2" - alohida
-// fieldlar) yoki JSON-string sifatida (["id1","id2"]) kelishi mumkin - ikkalasini ham qo'llab quvvatlaymiz
 const parseCategoryIds = ({ value }: { value: unknown }) => {
   if (Array.isArray(value)) return value;
   if (typeof value === 'string') {
@@ -31,7 +29,7 @@ export class CreateMovieDto {
   @ApiProperty({ example: 'Yangi Film' })
   @IsString()
   @IsNotEmpty()
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({ example: 'Film ta\'rifi' })
   @IsOptional()
@@ -42,13 +40,13 @@ export class CreateMovieDto {
   @Type(() => Number)
   @IsInt()
   @Min(1900)
-  release_year: number;
+  release_year!: number;
 
   @ApiProperty({ example: 120 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  duration_minutes: number;
+  duration_minutes!: number;
 
   @ApiPropertyOptional({ enum: SubscriptionType, default: SubscriptionType.FREE })
   @IsOptional()

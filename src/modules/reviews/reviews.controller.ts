@@ -8,7 +8,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 
 @ApiTags('Reviews')
 @ApiBearerAuth()
-@UseGuards(AuthGuard) // Sharh qoldirish/o'chirish uchun tizimga kirgan bo'lish shart
+@UseGuards(AuthGuard)
 @Controller('movies/:movie_id/reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}

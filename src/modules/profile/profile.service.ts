@@ -6,7 +6,6 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Joriy foydalanuvchining profil ma'lumotlarini (ism, telefon, davlat, avatar) qaytaradi
   async getMyProfile(userId: string) {
     const profile = await this.prisma.profile.findUnique({
       where: { user_id: userId },
@@ -30,7 +29,6 @@ export class ProfileService {
     };
   }
 
-  // Profil ma'lumotlarini yangilaydi (faqat yuborilgan maydonlar o'zgaradi)
   async updateMyProfile(userId: string, payload: UpdateProfileDto) {
     const profile = await this.prisma.profile.update({
       where: { user_id: userId },

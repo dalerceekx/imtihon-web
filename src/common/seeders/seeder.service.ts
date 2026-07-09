@@ -3,12 +3,6 @@ import * as argon2 from 'argon2';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../core/database/prisma.service';
 
-/**
- * SeederService - ilova birinchi marta ishga tushganda:
- * 1) Superadmin foydalanuvchisini (agar mavjud bo'lmasa) yaratadi
- * 2) Standart obuna rejalarini (Free, Premium) yaratadi
- * Bu OnModuleInit orqali avtomatik chaqiriladi, qo'lda ishga tushirish shart emas.
- */
 @Injectable()
 export class SeederService implements OnModuleInit {
   private readonly logger = new Logger(SeederService.name);

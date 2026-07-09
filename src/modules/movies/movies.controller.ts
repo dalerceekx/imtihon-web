@@ -7,8 +7,7 @@ import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 
 @ApiTags('Movies')
-// OptionalAuthGuard: token bo'lsa foydalanuvchini aniqlaydi (is_favorite, ruxsat tekshiruvi uchun),
-// bo'lmasa ham so'rovni bloklamaydi - kinolar sahifasi hamma uchun ochiq
+
 @UseGuards(OptionalAuthGuard)
 @Controller('movies')
 export class MoviesController {

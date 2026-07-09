@@ -8,7 +8,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('Profile')
 @ApiBearerAuth()
-@UseGuards(AuthGuard) // Bu yerda faqat login bo'lganlik tekshiriladi, rol muhim emas
+@UseGuards(AuthGuard) 
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}

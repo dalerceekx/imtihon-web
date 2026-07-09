@@ -3,10 +3,6 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 
-/**
- * PrismaService - Prisma ORM orqali PostgreSQL bazasi bilan ishlash uchun asosiy servis.
- * Butun ilova davomida bitta connection pool ishlatiladi (@Global modul sifatida ulanadi).
- */
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);

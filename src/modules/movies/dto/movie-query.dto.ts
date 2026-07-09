@@ -18,13 +18,11 @@ export class MovieQueryDto {
   @Min(1)
   limit?: number = 20;
 
-  // Kategoriya slugi bo'yicha filter (masalan: "action")
   @ApiPropertyOptional({ example: 'action' })
   @IsOptional()
   @IsString()
   category?: string;
 
-  // Sarlavha bo'yicha qidiruv
   @ApiPropertyOptional({ example: 'qasoskorlar' })
   @IsOptional()
   @IsString()

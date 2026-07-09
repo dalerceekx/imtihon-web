@@ -8,7 +8,6 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-// Hamma uchun ochiq: kategoriyalar ro'yxatini olish (kinolarni filterlash uchun)
 @ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
@@ -21,7 +20,6 @@ export class CategoriesController {
   }
 }
 
-// Faqat admin/superadmin uchun: kategoriyalarni boshqarish (RBAC talabiga muvofiq)
 @ApiTags('Admin - Categories')
 @ApiBearerAuth()
 @UseGuards(AuthGuard, RoleGuard)

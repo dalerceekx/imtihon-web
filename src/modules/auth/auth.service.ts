@@ -12,12 +12,6 @@ export class AuthService {
     private readonly generateToken: GenerateToken,
   ) {}
 
-  /**
-   * Yangi foydalanuvchini ro'yxatdan o'tkazadi.
-   * - email yoki username band bo'lsa xatolik qaytaradi
-   * - parolni argon2 bilan xeshlaydi (hech qachon ochiq holda saqlanmaydi)
-   * - foydalanuvchi bilan birga bo'sh Profile yozuvini ham yaratadi (keyinchalik to'ldirish uchun)
-   */
   async register(payload: RegisterDto) {
     const exists = await this.prisma.user.findFirst({
       where: {
@@ -36,7 +30,7 @@ export class AuthService {
         username: payload.username,
         email: payload.email,
         password_hash: passwordHash,
-        profile: { create: {} }, // bo'sh profil - foydalanuvchi keyin to'ldiradi
+        profile: { create: {} },
       },
     });
 
@@ -52,12 +46,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Email va parol orqali tizimga kiritadi.
-   * - parolni argon2.verify bilan tekshiradi
-   * - access/refresh tokenlarni yaratadi va javobda qaytaradi (Bearer orqali ishlatiladi)
-   * - foydalanuvchining faol obunasi haqida qisqacha ma'lumot qaytaradi
-   */
   async login(payload: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: payload.email } });
 
@@ -73,7 +61,6 @@ export class AuthService {
     const accessToken = await this.generateToken.generateAccessToken(user.id, user.role);
     const refreshToken = await this.generateToken.generateRefreshToken(user.id, user.role);
 
-    // Foydalanuvchining eng so'nggi faol (ACTIVE) obunasini topamiz
     const activeSubscription = await this.prisma.userSubscription.findFirst({
       where: { user_id: user.id, status: 'ACTIVE' },
       include: { plan: true },
@@ -97,7 +84,6 @@ export class AuthService {
     };
   }
 
-  // Tizimdan chiqish (Bearer token orqali ishlaydi, client tomonidan token o'chiriladi)
   async logout() {
     return {
       success: true,

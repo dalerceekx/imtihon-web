@@ -5,7 +5,6 @@ import { PrismaService } from '../../core/database/prisma.service';
 export class FavoritesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Foydalanuvchining barcha sevimli kinolarini qaytaradi
   async findAll(userId: string) {
     const favorites = await this.prisma.favorite.findMany({
       where: { user_id: userId },
@@ -30,7 +29,6 @@ export class FavoritesService {
     };
   }
 
-  // Kinoni sevimlilar ro'yxatiga qo'shadi (bir xil kino ikki marta qo'shilmasligi kerak)
   async add(userId: string, movieId: string) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
@@ -60,7 +58,6 @@ export class FavoritesService {
     };
   }
 
-  // Kinoni sevimlilar ro'yxatidan o'chiradi
   async remove(userId: string, movieId: string) {
     const favorite = await this.prisma.favorite.findUnique({
       where: { user_id_movie_id: { user_id: userId, movie_id: movieId } },

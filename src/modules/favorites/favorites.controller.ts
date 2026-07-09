@@ -8,7 +8,7 @@ import { AddFavoriteDto } from './dto/add-favorite.dto';
 
 @ApiTags('Favorites')
 @ApiBearerAuth()
-@UseGuards(AuthGuard) // Sevimlilar faqat tizimga kirgan foydalanuvchi uchun
+@UseGuards(AuthGuard) 
 @Controller('favorites')
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}

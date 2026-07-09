@@ -7,7 +7,6 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Kinoga sharh va baho qo'shadi. Har bir foydalanuvchi bir kinoga faqat bitta sharh yoza oladi
   async create(userId: string, movieId: string, payload: CreateReviewDto) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
@@ -31,7 +30,6 @@ export class ReviewsService {
       include: { user: { select: { id: true, username: true } } },
     });
 
-    // Sharh qo'shilgandan so'ng kinoning umumiy reytingini qayta hisoblaymiz
     await this.recalculateMovieRating(movieId);
 
     return {
@@ -48,7 +46,6 @@ export class ReviewsService {
     };
   }
 
-  // Kinoning barcha sharhlarini id'lari bilan qaytaradi
   async findAll(movieId: string) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
@@ -73,10 +70,7 @@ export class ReviewsService {
     };
   }
 
-  /**
-   * Sharhni o'chiradi. Faqat sharh egasi yoki admin/superadmin
-   * (moderatsiya huquqiga ega bo'lgani uchun) o'chira oladi.
-   */
+
   async remove(userId: string, userRole: Role, movieId: string, reviewId: string) {
     const review = await this.prisma.review.findFirst({
       where: { id: reviewId, movie_id: movieId },
@@ -102,7 +96,6 @@ export class ReviewsService {
     };
   }
 
-  // Kinoning barcha sharhlari asosida o'rtacha reytingni qayta hisoblab, movies.rating ga yozadi
   private async recalculateMovieRating(movieId: string) {
     const stats = await this.prisma.review.aggregate({
       where: { movie_id: movieId },

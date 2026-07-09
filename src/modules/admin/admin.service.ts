@@ -10,7 +10,6 @@ import { LABEL_TO_QUALITY, QUALITY_LABELS } from '../../common/constants/quality
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Admin panel uchun barcha kinolar ro'yxati - sharh soni va kim qo'shgani bilan birga
   async findAll() {
     const movies = await this.prisma.movie.findMany({
       orderBy: { created_at: 'desc' },
@@ -39,12 +38,6 @@ export class AdminService {
     };
   }
 
-  /**
-   * Yangi kino qo'shadi.
-   * - Sarlavhadan avtomatik slug yasaydi va band bo'lsa oxiriga tasodifiy raqam qo'shadi
-   * - Poster fayli bo'lsa uning yo'lini saqlaydi
-   * - category_ids yuborilgan bo'lsa, movie_categories jadvaliga bog'lovchi yozuvlarni yaratadi
-   */
   async create(payload: CreateMovieDto, adminId: string, posterFilename?: string) {
     const slug = await this.generateUniqueSlug(payload.title);
 
@@ -78,14 +71,12 @@ export class AdminService {
     };
   }
 
-  // Kino ma'lumotlarini yangilaydi (faqat yuborilgan maydonlar o'zgaradi)
   async update(movieId: string, payload: UpdateMovieDto) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
       throw new NotFoundException('Kino topilmadi!');
     }
 
-    // Agar category_ids yuborilgan bo'lsa - eski bog'lanishlarni o'chirib, yangilarini yaratamiz
     if (payload.category_ids) {
       await this.prisma.movieCategory.deleteMany({ where: { movie_id: movieId } });
     }
@@ -117,7 +108,6 @@ export class AdminService {
     };
   }
 
-  // Kinoni butunlay o'chiradi (fayllar, sevimlilar, sharhlar ham "onDelete: Cascade" orqali o'chadi)
   async remove(movieId: string) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
@@ -132,7 +122,6 @@ export class AdminService {
     };
   }
 
-  // Kinoga yangi video fayl (masalan 720p, uz tilida) qo'shadi
   async addFile(movieId: string, payload: AddMovieFileDto, file: Express.Multer.File) {
     const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) {
@@ -164,7 +153,6 @@ export class AdminService {
     };
   }
 
-  // Slug bandligini tekshirib, band bo'lsa oxiriga tasodifiy 4 xonali raqam qo'shadi
   private async generateUniqueSlug(title: string): Promise<string> {
     const baseSlug = toSlug(title);
     let slug = baseSlug;

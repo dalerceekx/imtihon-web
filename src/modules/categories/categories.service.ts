@@ -8,7 +8,6 @@ import { toSlug } from '../../common/utils/slug.util';
 export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Barcha kategoriyalarni qaytaradi (filtr uchun frontendda ishlatiladi)
   async findAll() {
     const categories = await this.prisma.category.findMany({ orderBy: { name: 'asc' } });
 
@@ -18,7 +17,6 @@ export class CategoriesService {
     };
   }
 
-  // Yangi kategoriya yaratadi (nomi asosida avtomatik slug generatsiya qilinadi)
   async create(payload: CreateCategoryDto) {
     const slug = toSlug(payload.name);
 
@@ -38,7 +36,6 @@ export class CategoriesService {
     };
   }
 
-  // Kategoriyani yangilaydi
   async update(id: string, payload: UpdateCategoryDto) {
     const category = await this.prisma.category.findUnique({ where: { id } });
     if (!category) {
@@ -61,7 +58,6 @@ export class CategoriesService {
     };
   }
 
-  // Kategoriyani o'chiradi
   async remove(id: string) {
     const category = await this.prisma.category.findUnique({ where: { id } });
     if (!category) {
