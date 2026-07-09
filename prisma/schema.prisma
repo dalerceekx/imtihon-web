@@ -1,0 +1,255 @@
+// Kinolar sayti uchun Prisma sxemasi
+// 4-oy.md faylida ko'rsatilgan jadvallar shu yerda Prisma modellariga aylantirilgan
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMLAR ====================
+
+// Foydalanuvchi rollari (RBAC uchun)
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+// Kino/obuna turi - bepul yoki premium
+enum SubscriptionType {
+  FREE
+  PREMIUM
+}
+
+// Foydalanuvchi obunasining holati
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+  PENDING_PAYMENT
+}
+
+// To'lov usullari
+enum PaymentMethod {
+  CARD
+  PAYPAL
+  BANK_TRANSFER
+  CRYPTO
+}
+
+// To'lovning holati
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// Video fayl sifati (enum nomlari raqamdan boshlanmasligi kerak, shuning uchun "Q" prefiksi qo'shildi)
+enum VideoQuality {
+  Q240 @map("240p")
+  Q360 @map("360p")
+  Q480 @map("480p")
+  Q720 @map("720p")
+  Q1080 @map("1080p")
+  Q4K @map("4K")
+}
+
+// ==================== MODELLAR ====================
+
+// Foydalanuvchilar jadvali - autentifikatsiya uchun asosiy ma'lumotlar
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique @db.VarChar(50)
+  email         String   @unique @db.VarChar(100)
+  password_hash String
+  role          Role     @default(USER)
+  avatar_url    String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Bog'liqliklar (relations)
+  profile       Profile?
+  subscriptions UserSubscription[]
+  favorites     Favorite[]
+  reviews       Review[]
+  watchHistory  WatchHistory[]
+  createdMovies Movie[]            @relation("MovieCreatedBy")
+
+  @@map("users")
+}
+
+// Foydalanuvchi profili - qo'shimcha shaxsiy ma'lumotlar
+model Profile {
+  id         String   @id @default(uuid())
+  user_id    String   @unique
+  full_name  String?  @db.VarChar(100)
+  phone      String?  @db.VarChar(20)
+  country    String?  @db.VarChar(50)
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Obuna rejalari (Free, Premium va h.k.) - superadmin tomonidan boshqariladi
+model SubscriptionPlan {
+  id            String   @id @default(uuid())
+  name          String   @db.VarChar(50)
+  price         Decimal  @db.Decimal(10, 2)
+  duration_days Int
+  features      Json
+  is_active     Boolean  @default(true)
+
+  subscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+// Foydalanuvchining sotib olgan/faol obunalari
+model UserSubscription {
+  id          String             @id @default(uuid())
+  user_id     String
+  plan_id     String
+  start_date  DateTime           @default(now())
+  end_date    DateTime?
+  status      SubscriptionStatus @default(PENDING_PAYMENT)
+  auto_renew  Boolean            @default(false)
+  created_at  DateTime           @default(now())
+
+  user     User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [plan_id], references: [id])
+  payments Payment[]
+
+  @@map("user_subscriptions")
+}
+
+// To'lovlar tarixi
+model Payment {
+  id                      String        @id @default(uuid())
+  user_subscription_id    String
+  amount                  Decimal       @db.Decimal(10, 2)
+  payment_method          PaymentMethod
+  payment_details         Json
+  status                  PaymentStatus @default(PENDING)
+  external_transaction_id String?       @db.VarChar(100)
+  created_at              DateTime      @default(now())
+
+  userSubscription UserSubscription @relation(fields: [user_subscription_id], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// Kino kategoriyalari (janrlar)
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(50)
+  slug        String  @unique @db.VarChar(50)
+  description String?
+
+  movies MovieCategory[]
+
+  @@map("categories")
+}
+
+// Kinolar - asosiy kontent jadvali
+model Movie {
+  id                String           @id @default(uuid())
+  title             String           @db.VarChar(100)
+  slug              String           @unique @db.VarChar(100)
+  description        String?
+  release_year      Int
+  duration_minutes  Int
+  poster_url        String?
+  rating            Decimal          @default(0) @db.Decimal(3, 1)
+  subscription_type SubscriptionType @default(FREE)
+  view_count        Int              @default(0)
+  created_by        String
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  creator      User            @relation("MovieCreatedBy", fields: [created_by], references: [id])
+  categories   MovieCategory[]
+  files        MovieFile[]
+  favorites    Favorite[]
+  reviews      Review[]
+  watchHistory WatchHistory[]
+
+  @@map("movies")
+}
+
+// Kino va kategoriya orasidagi ko'p-ko'pga (many-to-many) bog'lanish jadvali
+model MovieCategory {
+  id          String @id @default(uuid())
+  movie_id    String
+  category_id String
+
+  movie    Movie    @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@unique([movie_id, category_id])
+  @@map("movie_categories")
+}
+
+// Kinoning turli sifat va tillardagi video fayllari
+model MovieFile {
+  id       String       @id @default(uuid())
+  movie_id String
+  file_url String
+  quality  VideoQuality
+  language String       @default("uz") @db.VarChar(20)
+
+  movie Movie @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+
+  @@map("movie_files")
+}
+
+// Foydalanuvchining sevimli kinolari
+model Favorite {
+  id         String   @id @default(uuid())
+  user_id    String
+  movie_id   String
+  created_at DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+
+  // Bir foydalanuvchi bitta kinoni faqat bir marta sevimliga qo'sha oladi
+  @@unique([user_id, movie_id])
+  @@map("favorites")
+}
+
+// Foydalanuvchi sharhlari va bahosi
+model Review {
+  id         String   @id @default(uuid())
+  user_id    String
+  movie_id   String
+  rating     Int
+  comment    String?
+  created_at DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+// Foydalanuvchining ko'rish tarixi (progress bar uchun)
+model WatchHistory {
+  id                 String   @id @default(uuid())
+  user_id            String
+  movie_id           String
+  watched_duration   Int      @default(0)
+  watched_percentage Decimal  @default(0) @db.Decimal(5, 2)
+  last_watched       DateTime @default(now())
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, movie_id])
+  @@map("watch_history")
+}
