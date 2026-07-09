@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -21,6 +21,14 @@ export class ReviewsController {
     @Body() payload: CreateReviewDto,
   ) {
     return this.reviewsService.create(user.id, movieId, payload);
+  }
+
+  @ApiOperation({
+    summary: 'Kino sharhlari ro\'yxati (GET /api/movies/:movie_id/reviews)',
+  })
+  @Get()
+  findAll(@Param('movie_id') movieId: string) {
+    return this.reviewsService.findAll(movieId);
   }
 
   @ApiOperation({

@@ -48,6 +48,31 @@ export class ReviewsService {
     };
   }
 
+  // Kinoning barcha sharhlarini id'lari bilan qaytaradi
+  async findAll(movieId: string) {
+    const movie = await this.prisma.movie.findUnique({ where: { id: movieId } });
+    if (!movie) {
+      throw new NotFoundException('Kino topilmadi!');
+    }
+
+    const reviews = await this.prisma.review.findMany({
+      where: { movie_id: movieId },
+      include: { user: { select: { id: true, username: true } } },
+      orderBy: { created_at: 'desc' },
+    });
+
+    return {
+      success: true,
+      data: reviews.map((review) => ({
+        id: review.id,
+        user: { id: review.user.id, username: review.user.username },
+        rating: review.rating,
+        comment: review.comment,
+        created_at: review.created_at,
+      })),
+    };
+  }
+
   /**
    * Sharhni o'chiradi. Faqat sharh egasi yoki admin/superadmin
    * (moderatsiya huquqiga ega bo'lgani uchun) o'chira oladi.
