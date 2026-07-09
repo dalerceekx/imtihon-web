@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service';
 import { PurchaseSubscriptionDto } from './dto/purchase-subscription.dto';
+import { CreatePlanDto } from './dto/create-plan.dto';
 
 @Injectable()
 export class SubscriptionsService {
@@ -23,6 +24,51 @@ export class SubscriptionsService {
         features: plan.features,
       })),
     };
+  }
+
+  async createPlan(payload: CreatePlanDto) {
+    // Prevent duplicate active plan names
+    const exists = await this.prisma.subscriptionPlan.findFirst({ where: { name: payload.name } });
+    if (exists && exists.is_active) {
+      throw new ConflictException('Bu nom bilan faol reja allaqachon mavjud!');
+    }
+
+    const plan = await this.prisma.subscriptionPlan.create({
+      data: {
+        name: payload.name,
+        price: payload.price,
+        duration_days: payload.duration_days,
+        features: payload.features ?? {},
+        is_active: payload.is_active ?? true,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Obuna rejasi yaratildi',
+      data: {
+        id: plan.id,
+        name: plan.name,
+        price: plan.price,
+        duration_days: plan.duration_days,
+      },
+    };
+  }
+
+  async removePlan(id: string) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException('Reja topilmadi!');
+    }
+
+    const usageCount = await this.prisma.userSubscription.count({ where: { plan_id: id } });
+    if (usageCount > 0) {
+      throw new ConflictException(`Bu rejaga ${usageCount} ta foydalanuvchi obuna - avval ularni bekor qiling yoki reja almashshtiring.`);
+    }
+
+    await this.prisma.subscriptionPlan.delete({ where: { id } });
+
+    return { success: true, message: 'Reja muvaffaqiyatli o\'chirildi' };
   }
 
   /**
