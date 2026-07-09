@@ -161,7 +161,7 @@ export class AdminService {
     while (await this.prisma.movie.findUnique({ where: { slug } })) {
       attempt += 1;
       slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-      if (attempt > 10) break; // cheksiz aylanishning oldini olish
+      if (attempt > 10) break;
     }
 
     return slug;

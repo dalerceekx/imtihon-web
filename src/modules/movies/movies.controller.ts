@@ -19,6 +19,12 @@ export class MoviesController {
     return this.moviesService.findAll(query);
   }
 
+  @ApiOperation({ summary: 'Barcha kinolar ro\'yxati (GET /api/movies/all)' })
+  @Get('all')
+  findAllApproved(@Query() query: MovieQueryDto) {
+    return this.moviesService.findAll(query);
+  }
+
   @ApiOperation({ summary: 'Bitta kino haqida to\'liq ma\'lumot (GET /api/movies/:slug)' })
   @Get(':slug')
   findOne(@Param('slug') slug: string, @CurrentUser() user: JwtPayload) {

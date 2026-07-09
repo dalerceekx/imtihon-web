@@ -108,7 +108,6 @@ export class AdminController {
     return this.adminService.remove(movieId);
   }
 
-
   @ApiOperation({
     summary: 'Kinoga video fayl yuklash (POST /api/admin/movies/:movie_id/files)',
   })
