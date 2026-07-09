@@ -15,7 +15,7 @@ export class SeederService implements OnModuleInit {
   }
 
   private async seedSuperadmin() {
-    const email = process.env.SUPERADMIN_EMAIL || 'superadmin@kinolar.uz';
+    const email = process.env.SUPERADMIN_EMAIL || 'rizoqulov@gmail.com';
     const password = process.env.SUPERADMIN_PASSWORD || 'SuperAdmin123';
 
     const exists = await this.prisma.user.findUnique({ where: { email } });
@@ -27,7 +27,7 @@ export class SeederService implements OnModuleInit {
 
     await this.prisma.user.create({
       data: {
-        username: 'superadmin',
+        username: 'rizoqulov',
         email,
         password_hash: await argon2.hash(password),
         role: Role.SUPERADMIN,
