@@ -16,6 +16,7 @@ export class AdminService {
       include: {
         creator: { select: { username: true } },
         _count: { select: { reviews: true } },
+        files: true,
       },
     });
 
@@ -32,6 +33,13 @@ export class AdminService {
           review_count: movie._count.reviews,
           created_at: movie.created_at,
           created_by: movie.creator.username,
+          // file_id shu yerdan olinadi - GET /movies/:movie_id/files/:file_id orqali tomosha qilish uchun
+          files: movie.files.map((file) => ({
+            id: file.id,
+            quality: QUALITY_LABELS[file.quality],
+            language: file.language,
+            file_url: `/movies/${movie.id}/files/${file.id}`,
+          })),
         })),
         total: movies.length,
       },
@@ -148,7 +156,9 @@ export class AdminService {
         quality: QUALITY_LABELS[movieFile.quality],
         language: movieFile.language,
         size_mb: Math.round(file.size / (1024 * 1024)),
-        file_url: movieFile.file_url,
+        // Xom /uploads/movies/... statik manzili endi ochiq emas - tomosha qilish uchun
+        // obuna tekshiruvidan o'tadigan himoyalangan endpoint qaytariladi
+        file_url: `/movies/${movieFile.movie_id}/files/${movieFile.id}`,
       },
     };
   }

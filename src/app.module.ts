@@ -19,20 +19,17 @@ import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
+    // Faqat posterlar ochiq/statik serverdan beriladi - kino videofayllari esa
+    // MoviesController orqali (obuna tekshiruvi bilan) beriladi, shuning uchun bu yerga qo'shilmaydi
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'src', 'uploads'),
-      serveRoot: '/uploads',
+      rootPath: join(process.cwd(), 'src', 'uploads', 'posters'),
+      serveRoot: '/uploads/posters',
     }),
     ConfigModule.forRoot({ isGlobal: true }),
 
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-    }),
-
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'src', 'uploads'),
-      serveRoot: '/uploads',
     }),
 
     PrismaModule,

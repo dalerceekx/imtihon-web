@@ -26,6 +26,61 @@ export class SubscriptionsService {
     };
   }
 
+  // Foydalanuvchining o'zining joriy (faol) obunasi va butun obunalar tarixini qaytaradi
+  async getMySubscription(userId: string) {
+    const [active, history] = await this.prisma.$transaction([
+      this.prisma.userSubscription.findFirst({
+        where: { user_id: userId, status: 'ACTIVE', end_date: { gte: new Date() } },
+        include: { plan: true },
+        orderBy: { end_date: 'desc' },
+      }),
+      this.prisma.userSubscription.findMany({
+        where: { user_id: userId },
+        include: { plan: true },
+        orderBy: { created_at: 'desc' },
+      }),
+    ]);
+
+    const now = new Date();
+    // DB'da muddati o'tgan obunalar hali "ACTIVE" bo'lib turishi mumkin (avtomatik EXPIRED qilib
+    // qo'yadigan cron job yo'q), shuning uchun ko'rsatish uchun haqiqiy holatini shu yerda hisoblaymiz
+    const effectiveStatus = (sub: (typeof history)[number]) =>
+      sub.status === 'ACTIVE' && sub.end_date && sub.end_date < now ? 'EXPIRED' : sub.status;
+
+    return {
+      success: true,
+      data: {
+        has_active_subscription: !!active,
+        active: active
+          ? {
+              id: active.id,
+              plan: {
+                id: active.plan.id,
+                name: active.plan.name,
+                price: active.plan.price,
+                duration_days: active.plan.duration_days,
+              },
+              start_date: active.start_date,
+              end_date: active.end_date,
+              status: active.status,
+              auto_renew: active.auto_renew,
+              days_remaining: active.end_date
+                ? Math.max(0, Math.ceil((active.end_date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+                : null,
+            }
+          : null,
+        history: history.map((sub) => ({
+          id: sub.id,
+          plan: { id: sub.plan.id, name: sub.plan.name },
+          start_date: sub.start_date,
+          end_date: sub.end_date,
+          status: effectiveStatus(sub),
+          auto_renew: sub.auto_renew,
+        })),
+      },
+    };
+  }
+
   async createPlan(payload: CreatePlanDto) {
     // Prevent duplicate active plan names
     const exists = await this.prisma.subscriptionPlan.findFirst({ where: { name: payload.name } });

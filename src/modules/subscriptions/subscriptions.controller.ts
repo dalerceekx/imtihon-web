@@ -22,6 +22,14 @@ export class SubscriptionsController {
   }
 
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: "O'zining obunasi haqida ma'lumot (GET /api/subscription/my)" })
+  @Get('my')
+  getMySubscription(@CurrentUser() user: JwtPayload) {
+    return this.subscriptionsService.getMySubscription(user.id);
+  }
+
+  @ApiBearerAuth()
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.SUPERADMIN)
   @ApiOperation({ summary: "Yangi obuna rejasini qo'shish (POST /api/subscription/plans) - Superadmin" })

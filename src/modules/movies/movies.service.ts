@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, Role, SubscriptionType } from '@prisma/client';
+import { basename, join } from 'path';
 import { PrismaService } from '../../core/database/prisma.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { QUALITY_LABELS } from '../../common/constants/quality.constant';
@@ -94,33 +95,16 @@ export class MoviesService {
       _count: { _all: true },
     });
 
-    let isFavorite = false;
-    let hasAccess = movie.subscription_type === 'FREE';
+    const [favorite, hasAccess] = await Promise.all([
+      currentUser
+        ? this.prisma.favorite.findUnique({
+            where: { user_id_movie_id: { user_id: currentUser.id, movie_id: movie.id } },
+          })
+        : null,
+      this.checkMovieAccess(movie.subscription_type, currentUser),
+    ]);
 
-    if (currentUser) {
-      // Adminlar har doim to'liq ruxsatga ega
-      if (currentUser.role === Role.ADMIN || currentUser.role === Role.SUPERADMIN) {
-        hasAccess = true;
-      }
-
-      const [favorite, activeSubscription] = await this.prisma.$transaction([
-        this.prisma.favorite.findUnique({
-          where: { user_id_movie_id: { user_id: currentUser.id, movie_id: movie.id } },
-        }),
-        this.prisma.userSubscription.findFirst({
-          where: {
-            user_id: currentUser.id,
-            status: 'ACTIVE',
-            end_date: { gte: new Date() },
-          },
-        }),
-      ]);
-
-      isFavorite = !!favorite;
-      if (activeSubscription) {
-        hasAccess = true;
-      }
-    }
+    const isFavorite = !!favorite;
 
     return {
       success: true,
@@ -137,12 +121,15 @@ export class MoviesService {
         view_count: movie.view_count,
         is_favorite: isFavorite,
         categories: movie.categories.map((c) => c.category.name),
-        // Agar ruxsat bo'lmasa, fayllar ro'yxati bo'sh qaytadi va foydalanuvchiga obuna kerakligi bildiriladi
+        // Agar ruxsat bo'lmasa, fayllar ro'yxati bo'sh qaytadi va foydalanuvchiga obuna kerakligi bildiriladi.
+        // file_url endi MoviesController orqali (obuna qayta tekshirilib) beriladigan himoyalangan manzil -
+        // xom /uploads/movies/... statik manzili hech qachon qaytarilmaydi
         files: hasAccess
           ? movie.files.map((file) => ({
+              id: file.id,
               quality: QUALITY_LABELS[file.quality],
               language: file.language,
-              file_url: file.file_url,
+              file_url: `/movies/${movie.id}/files/${file.id}`,
             }))
           : [],
         requires_subscription: !hasAccess,
@@ -152,5 +139,52 @@ export class MoviesService {
         },
       },
     };
+  }
+
+  /**
+   * Kino video faylini fizik diskdagi manzilini qaytaradi - lekin faqat
+   * so'rovchi shu kinoni ko'rishga ruxsati bo'lsagina (aks holda 403/404).
+   * Fayllar /uploads orqali ochiq berilmaydi, faqat shu metod orqali - shu bilan
+   * obuna tekshiruvini chetlab o'tib video havolasini to'g'ridan-to'g'ri ochish imkonsiz bo'ladi.
+   */
+  async getFilePathForStreaming(movieId: string, fileId: string, currentUser?: JwtPayload): Promise<string> {
+    const file = await this.prisma.movieFile.findFirst({
+      where: { id: fileId, movie_id: movieId },
+      include: { movie: { select: { subscription_type: true } } },
+    });
+
+    if (!file) {
+      throw new NotFoundException('Video fayl topilmadi!');
+    }
+
+    const hasAccess = await this.checkMovieAccess(file.movie.subscription_type, currentUser);
+    if (!hasAccess) {
+      throw new ForbiddenException('Bu videoni ko\'rish uchun faol premium obuna kerak!');
+    }
+
+    return join(process.cwd(), 'src', 'uploads', 'movies', basename(file.file_url));
+  }
+
+  private async checkMovieAccess(
+    movieSubscriptionType: SubscriptionType,
+    currentUser?: JwtPayload,
+  ): Promise<boolean> {
+    if (movieSubscriptionType === 'FREE') {
+      return true;
+    }
+
+    if (!currentUser) {
+      return false;
+    }
+
+    if (currentUser.role === Role.ADMIN || currentUser.role === Role.SUPERADMIN) {
+      return true;
+    }
+
+    const activeSubscription = await this.prisma.userSubscription.findFirst({
+      where: { user_id: currentUser.id, status: 'ACTIVE', end_date: { gte: new Date() } },
+    });
+
+    return !!activeSubscription;
   }
 }

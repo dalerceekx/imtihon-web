@@ -69,7 +69,7 @@ export class AuthService {
     const refreshToken = await this.generateToken.generateRefreshToken(user.id, user.role);
 
     const activeSubscription = await this.prisma.userSubscription.findFirst({
-      where: { user_id: user.id, status: 'ACTIVE' },
+      where: { user_id: user.id, status: 'ACTIVE', end_date: { gte: new Date() } },
       include: { plan: true },
       orderBy: { end_date: 'desc' },
     });

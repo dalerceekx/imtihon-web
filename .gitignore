@@ -6,6 +6,11 @@ dist/
 .env.local
 .env.production
 
+src/uploads/posters/*
+src/uploads/movies/*
+!src/uploads/posters/.gitkeep
+!src/uploads/movies/.gitkeep
+
 .vscode/
 .idea/
 
