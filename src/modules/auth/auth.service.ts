@@ -30,7 +30,13 @@ export class AuthService {
         username: payload.username,
         email: payload.email,
         password_hash: passwordHash,
-        profile: { create: {} },
+        profile: {
+          create: {
+            full_name: payload.full_name ?? null,
+            phone: payload.phone ?? null,
+            country: payload.country ?? null,
+          },
+        },
       },
     });
 
@@ -45,6 +51,7 @@ export class AuthService {
       },
     };
   }
+
 
   async login(payload: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: payload.email } });
@@ -83,7 +90,7 @@ export class AuthService {
       },
     };
   }
-
+  
   async logout() {
     return {
       success: true,
