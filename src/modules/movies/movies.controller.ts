@@ -1,6 +1,5 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Response } from 'express';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OptionalAuthGuard } from '../../common/guards/optional-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../core/utils/jwt';
@@ -8,7 +7,7 @@ import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 
 @ApiTags('Movies')
-
+@ApiBearerAuth()
 @UseGuards(OptionalAuthGuard)
 @Controller('movies')
 export class MoviesController {
@@ -30,20 +29,5 @@ export class MoviesController {
   @Get(':slug')
   findOne(@Param('slug') slug: string, @CurrentUser() user: JwtPayload) {
     return this.moviesService.findBySlug(slug, user);
-  }
-
-  @ApiOperation({
-    summary:
-      "Kino videosini tomosha qilish (GET /api/movies/:movie_id/files/:file_id) - premium kino uchun faol obuna talab qilinadi",
-  })
-  @Get(':movie_id/files/:file_id')
-  async streamFile(
-    @Param('movie_id') movieId: string,
-    @Param('file_id') fileId: string,
-    @CurrentUser() user: JwtPayload,
-    @Res() res: Response,
-  ) {
-    const absolutePath = await this.moviesService.getFilePathForStreaming(movieId, fileId, user);
-    res.sendFile(absolutePath);
   }
 }

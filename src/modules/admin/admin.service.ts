@@ -156,9 +156,7 @@ export class AdminService {
         quality: QUALITY_LABELS[movieFile.quality],
         language: movieFile.language,
         size_mb: Math.round(file.size / (1024 * 1024)),
-        // Xom /uploads/movies/... statik manzili endi ochiq emas - tomosha qilish uchun
-        // obuna tekshiruvidan o'tadigan himoyalangan endpoint qaytariladi
-        file_url: `/movies/${movieFile.movie_id}/files/${movieFile.id}`,
+        file_url: fileUrl,
       },
     };
   }

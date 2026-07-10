@@ -1,6 +1,5 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role, SubscriptionType } from '@prisma/client';
-import { basename, join } from 'path';
 import { PrismaService } from '../../core/database/prisma.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { QUALITY_LABELS } from '../../common/constants/quality.constant';
@@ -122,14 +121,13 @@ export class MoviesService {
         is_favorite: isFavorite,
         categories: movie.categories.map((c) => c.category.name),
         // Agar ruxsat bo'lmasa, fayllar ro'yxati bo'sh qaytadi va foydalanuvchiga obuna kerakligi bildiriladi.
-        // file_url endi MoviesController orqali (obuna qayta tekshirilib) beriladigan himoyalangan manzil -
-        // xom /uploads/movies/... statik manzili hech qachon qaytarilmaydi
+        // Ruxsat bo'lsa, video faylning statik manzili to'g'ridan-to'g'ri qaytariladi.
         files: hasAccess
           ? movie.files.map((file) => ({
               id: file.id,
               quality: QUALITY_LABELS[file.quality],
               language: file.language,
-              file_url: `/movies/${movie.id}/files/${file.id}`,
+              file_url: file.file_url,
             }))
           : [],
         requires_subscription: !hasAccess,
@@ -139,30 +137,6 @@ export class MoviesService {
         },
       },
     };
-  }
-
-  /**
-   * Kino video faylini fizik diskdagi manzilini qaytaradi - lekin faqat
-   * so'rovchi shu kinoni ko'rishga ruxsati bo'lsagina (aks holda 403/404).
-   * Fayllar /uploads orqali ochiq berilmaydi, faqat shu metod orqali - shu bilan
-   * obuna tekshiruvini chetlab o'tib video havolasini to'g'ridan-to'g'ri ochish imkonsiz bo'ladi.
-   */
-  async getFilePathForStreaming(movieId: string, fileId: string, currentUser?: JwtPayload): Promise<string> {
-    const file = await this.prisma.movieFile.findFirst({
-      where: { id: fileId, movie_id: movieId },
-      include: { movie: { select: { subscription_type: true } } },
-    });
-
-    if (!file) {
-      throw new NotFoundException('Video fayl topilmadi!');
-    }
-
-    const hasAccess = await this.checkMovieAccess(file.movie.subscription_type, currentUser);
-    if (!hasAccess) {
-      throw new ForbiddenException('Bu videoni ko\'rish uchun faol premium obuna kerak!');
-    }
-
-    return join(process.cwd(), 'src', 'uploads', 'movies', basename(file.file_url));
   }
 
   private async checkMovieAccess(

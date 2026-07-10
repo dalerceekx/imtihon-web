@@ -19,11 +19,15 @@ import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
-    // Faqat posterlar ochiq/statik serverdan beriladi - kino videofayllari esa
-    // MoviesController orqali (obuna tekshiruvi bilan) beriladi, shuning uchun bu yerga qo'shilmaydi
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'src', 'uploads', 'posters'),
       serveRoot: '/uploads/posters',
+    }),
+    // Kino video fayllari ham statik manzildan beriladi - obuna tekshiruvi faqat
+    // kino ma'lumotida (GET /movies/:slug) file_url ko'rsatish-ko'rsatmaslikda qo'llanadi
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'src', 'uploads', 'movies'),
+      serveRoot: '/uploads/movies',
     }),
     ConfigModule.forRoot({ isGlobal: true }),
 

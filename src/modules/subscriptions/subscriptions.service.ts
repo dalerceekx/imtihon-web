@@ -7,7 +7,6 @@ import { CreatePlanDto } from './dto/create-plan.dto';
 export class SubscriptionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Faol (is_active=true) barcha obuna rejalarini ro'yxatini qaytaradi (Free, Premium va h.k.)
   async getPlans() {
     const plans = await this.prisma.subscriptionPlan.findMany({
       where: { is_active: true },
