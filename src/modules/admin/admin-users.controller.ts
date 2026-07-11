@@ -16,7 +16,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 export class AdminUsersController {
   constructor(private readonly adminUsersService: AdminUsersService) {}
 
-  @ApiOperation({ summary: 'Yangi admin qo\'shish (POST /api/admin/admins)' })
+  @ApiOperation({ summary: 'Yangi admin qo\'shish' })
   @Post()
   create(@Body() payload: CreateAdminDto) {
     return this.adminUsersService.createAdmin(payload);

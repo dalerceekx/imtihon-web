@@ -63,7 +63,7 @@ const videoFileFilter = (req: any, file: Express.Multer.File, cb: any) => {
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @ApiOperation({ summary: 'Barcha kinolar - admin ko\'rinishi (GET /api/admin/movies)' })
+  @ApiOperation({ summary: 'Barcha kinolar - admin ko\'rinishi' })
   @Get()
   findAll() {
     return this.adminService.findAll();

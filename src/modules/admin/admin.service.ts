@@ -33,7 +33,6 @@ export class AdminService {
           review_count: movie._count.reviews,
           created_at: movie.created_at,
           created_by: movie.creator.username,
-          // file_id shu yerdan olinadi - GET /movies/:movie_id/files/:file_id orqali tomosha qilish uchun
           files: movie.files.map((file) => ({
             id: file.id,
             quality: QUALITY_LABELS[file.quality],

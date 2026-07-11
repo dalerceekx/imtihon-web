@@ -13,19 +13,19 @@ import { MovieQueryDto } from './dto/movie-query.dto';
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
-  @ApiOperation({ summary: 'Kinolar ro\'yxati (GET /api/movies) - filter, qidiruv, pagination bilan' })
+  @ApiOperation({ summary: 'Kinolar ro\'yxati - filter, qidiruv, pagination bilan' })
   @Get()
   findAll(@Query() query: MovieQueryDto) {
     return this.moviesService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Barcha kinolar ro\'yxati (GET /api/movies/all)' })
+  @ApiOperation({ summary: 'Barcha kinolar ro\'yxati - ochiq' })
   @Get('all')
   findAllApproved(@Query() query: MovieQueryDto) {
     return this.moviesService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Bitta kino haqida to\'liq ma\'lumot (GET /api/movies/:slug)' })
+  @ApiOperation({ summary: 'Bitta kino haqida to\'liq ma\'lumot - ochiq' })
   @Get(':slug')
   findOne(@Param('slug') slug: string, @CurrentUser() user: JwtPayload) {
     return this.moviesService.findBySlug(slug, user);

@@ -9,20 +9,20 @@ import { LoginDto } from './dto/login.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Ro\'yxatdan o\'tish (POST /api/auth/register)' })
+  @ApiOperation({ summary: 'Ro\'yxatdan o\'tish ' })
   @Post('register')
   register(@Body() payload: RegisterDto) {
     return this.authService.register(payload);
   }
 
-  @ApiOperation({ summary: 'Tizimga kirish (POST /api/auth/login)' })
+  @ApiOperation({ summary: 'Tizimga kirish ' })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() payload: LoginDto) {
     return this.authService.login(payload);
   }
 
-  @ApiOperation({ summary: 'Tizimdan chiqish (POST /api/auth/logout)' })
+  @ApiOperation({ summary: 'Tizimdan chiqish ' })
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout() {

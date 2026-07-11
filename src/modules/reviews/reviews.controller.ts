@@ -13,7 +13,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @ApiOperation({ summary: 'Kinoga sharh qoldirish (POST /api/movies/:movie_id/reviews)' })
+  @ApiOperation({ summary: 'Kinoga sharh qoldirish' })
   @Post()
   create(
     @CurrentUser() user: JwtPayload,
@@ -24,7 +24,7 @@ export class ReviewsController {
   }
 
   @ApiOperation({
-    summary: 'Kino sharhlari ro\'yxati (GET /api/movies/:movie_id/reviews)',
+    summary: 'Kino sharhlari ro\'yxati',
   })
   @Get()
   findAll(@Param('movie_id') movieId: string) {
@@ -32,7 +32,7 @@ export class ReviewsController {
   }
 
   @ApiOperation({
-    summary: 'Sharhni o\'chirish (DELETE /api/movies/:movie_id/reviews/:review_id)',
+    summary: 'Sharhni o\'chirish',
   })
   @Delete(':review_id')
   remove(

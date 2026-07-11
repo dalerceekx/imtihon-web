@@ -125,12 +125,6 @@ export class SubscriptionsService {
     return { success: true, message: 'Reja muvaffaqiyatli o\'chirildi' };
   }
 
-  /**
-   * Foydalanuvchi tanlagan obuna rejasini sotib oladi.
-   * Bu yerda haqiqiy to'lov tizimi (Stripe/Payme/Click) o'rniga soddalashtirilgan
-   * simulyatsiya qilingan: to'lov darhol "completed" deb belgilanadi.
-   * Haqiqiy loyihada bu joyga tashqi to'lov provayderi bilan integratsiya qo'shiladi.
-   */
   async purchase(userId: string, payload: PurchaseSubscriptionDto) {
     const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id: payload.plan_id } });
 

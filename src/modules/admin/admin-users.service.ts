@@ -10,8 +10,6 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto';
 export class AdminUsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Barcha foydalanuvchilar ro'yxati - roli (status) va joriy obuna holati bilan birga.
-  // Admin va superadmin uchun (GET /api/admin/users)
   async listUsers(query: ListUsersQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -44,8 +42,7 @@ export class AdminUsersService {
     ]);
 
     const now = new Date();
-    // DB'da muddati o'tgan obunalar hali "ACTIVE" bo'lib turishi mumkin (avtomatik EXPIRED qilib
-    // qo'yadigan cron job yo'q), shuning uchun ko'rsatish uchun haqiqiy holatini shu yerda hisoblaymiz
+
     const effectiveStatus = (sub: { status: string; end_date: Date | null }) =>
       sub.status === 'ACTIVE' && sub.end_date && sub.end_date < now ? 'EXPIRED' : sub.status;
 

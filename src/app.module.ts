@@ -23,8 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
       rootPath: join(process.cwd(), 'src', 'uploads', 'posters'),
       serveRoot: '/uploads/posters',
     }),
-    // Kino video fayllari ham statik manzildan beriladi - obuna tekshiruvi faqat
-    // kino ma'lumotida (GET /movies/:slug) file_url ko'rsatish-ko'rsatmaslikda qo'llanadi
+
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'src', 'uploads', 'movies'),
       serveRoot: '/uploads/movies',

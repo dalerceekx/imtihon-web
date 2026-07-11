@@ -13,19 +13,19 @@ import { AddFavoriteDto } from './dto/add-favorite.dto';
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
-  @ApiOperation({ summary: 'Sevimli kinolar ro\'yxati (GET /api/favorites)' })
+  @ApiOperation({ summary: 'Sevimli kinolar ro\'yxati ' })
   @Get()
   findAll(@CurrentUser() user: JwtPayload) {
     return this.favoritesService.findAll(user.id);
   }
 
-  @ApiOperation({ summary: 'Kinoni sevimlilarga qo\'shish (POST /api/favorites)' })
+  @ApiOperation({ summary: 'Kinoni sevimlilarga qo\'shish ' })
   @Post()
   add(@CurrentUser() user: JwtPayload, @Body() payload: AddFavoriteDto) {
     return this.favoritesService.add(user.id, payload.movie_id);
   }
 
-  @ApiOperation({ summary: 'Kinoni sevimlilardan o\'chirish (DELETE /api/favorites/:movie_id)' })
+  @ApiOperation({ summary: 'Kinoni sevimlilardan o\'chirish ' })
   @Delete(':movie_id')
   remove(@CurrentUser() user: JwtPayload, @Param('movie_id') movieId: string) {
     return this.favoritesService.remove(user.id, movieId);

@@ -17,7 +17,7 @@ export class AdminUserListController {
 
   @ApiOperation({
     summary:
-      "Barcha foydalanuvchilar ro'yxati - roli (statusi) va obuna holati bilan (GET /api/admin/users)",
+      "Barcha foydalanuvchilar ro'yxati - roli (statusi) va obuna holati bilan",
   })
   @Get()
   findAll(@Query() query: ListUsersQueryDto) {

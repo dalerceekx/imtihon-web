@@ -13,7 +13,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @ApiOperation({ summary: 'Barcha kategoriyalar (GET /api/categories) - ochiq' })
+  @ApiOperation({ summary: 'Barcha kategoriyalar  - ochiq' })
   @Get()
   findAll() {
     return this.categoriesService.findAll();
@@ -28,19 +28,19 @@ export class CategoriesController {
 export class AdminCategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @ApiOperation({ summary: 'Yangi kategoriya yaratish (POST /api/admin/categories)' })
+  @ApiOperation({ summary: 'Yangi kategoriya yaratish' })
   @Post()
   create(@Body() payload: CreateCategoryDto) {
     return this.categoriesService.create(payload);
   }
 
-  @ApiOperation({ summary: 'Kategoriyani yangilash (PUT /api/admin/categories/:id)' })
+  @ApiOperation({ summary: 'Kategoriyani yangilash ' })
   @Put(':id')
   update(@Param('id') id: string, @Body() payload: UpdateCategoryDto) {
     return this.categoriesService.update(id, payload);
   }
 
-  @ApiOperation({ summary: 'Kategoriyani o\'chirish (DELETE /api/admin/categories/:id)' })
+  @ApiOperation({ summary: 'Kategoriyani o\'chirish ' })
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);

@@ -13,13 +13,13 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @ApiOperation({ summary: 'Joriy foydalanuvchi profilini olish (GET /api/profile)' })
+  @ApiOperation({ summary: 'Joriy foydalanuvchi profilini olish' })
   @Get()
   getProfile(@CurrentUser() user: JwtPayload) {
     return this.profileService.getMyProfile(user.id);
   }
 
-  @ApiOperation({ summary: 'Profilni yangilash (PUT /api/profile)' })
+  @ApiOperation({ summary: 'Profilni yangilash ' })
   @Put()
   updateProfile(@CurrentUser() user: JwtPayload, @Body() payload: UpdateProfileDto) {
     return this.profileService.updateMyProfile(user.id, payload);

@@ -9,10 +9,6 @@ import type { JwtPayload } from '../../core/utils/jwt';
 export class MoviesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Kinolar ro'yxatini sahifalash (pagination), qidiruv va filterlar bilan qaytaradi.
-   * Query parametrlar: page, limit, category (slug), search (title bo'yicha), subscription_type
-   */
   async findAll(query: MovieQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
