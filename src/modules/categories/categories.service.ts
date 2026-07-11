@@ -59,9 +59,20 @@ export class CategoriesService {
   }
 
   async remove(id: string) {
-    const category = await this.prisma.category.findUnique({ where: { id } });
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: { _count: { select: { movies: true } } },
+    });
     if (!category) {
       throw new NotFoundException('Kategoriya topilmadi!');
+    }
+
+    // Kategoriyada kino bo'lsa o'chirishga ruxsat bermaymiz - aks holda kinolar
+    // kategoriyasiz qolib ketadi (MovieCategory cascade bilan jimgina o'chib ketardi)
+    if (category._count.movies > 0) {
+      throw new ConflictException(
+        `Bu kategoriyada ${category._count.movies} ta kino bor - avval kinolarni o'chiring, keyin kategoriyani o'chirasiz!`,
+      );
     }
 
     await this.prisma.category.delete({ where: { id } });

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { Role } from '@prisma/client';
@@ -9,6 +9,7 @@ import type { JwtPayload } from '../../core/utils/jwt';
 import { SubscriptionsService } from './subscriptions.service';
 import { PurchaseSubscriptionDto } from './dto/purchase-subscription.dto';
 import { CreatePlanDto } from './dto/create-plan.dto';
+import { UpdatePlanDto } from './dto/update-plan.dto';
 
 @ApiTags('Subscriptions')
 @Controller('subscription')
@@ -36,6 +37,15 @@ export class SubscriptionsController {
   @Post('plans')
   createPlan(@Body() payload: CreatePlanDto) {
     return this.subscriptionsService.createPlan(payload);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.SUPERADMIN)
+  @ApiOperation({ summary: 'Obuna rejasini yangilash - Superadmin' })
+  @Put('plans/:id')
+  updatePlan(@Param('id') id: string, @Body() payload: UpdatePlanDto) {
+    return this.subscriptionsService.updatePlan(id, payload);
   }
 
   @ApiBearerAuth()

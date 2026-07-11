@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { PrismaService } from '../../core/database/prisma.service';
 import { PurchaseSubscriptionDto } from './dto/purchase-subscription.dto';
 import { CreatePlanDto } from './dto/create-plan.dto';
+import { UpdatePlanDto } from './dto/update-plan.dto';
 
 @Injectable()
 export class SubscriptionsService {
@@ -105,6 +106,47 @@ export class SubscriptionsService {
         name: plan.name,
         price: plan.price,
         duration_days: plan.duration_days,
+      },
+    };
+  }
+
+  async updatePlan(id: string, payload: UpdatePlanDto) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({ where: { id } });
+    if (!plan) {
+      throw new NotFoundException('Reja topilmadi!');
+    }
+
+    // Nom o'zgartirilayotgan bo'lsa, boshqa faol reja bilan to'qnashmasligini tekshiramiz
+    if (payload.name && payload.name !== plan.name) {
+      const exists = await this.prisma.subscriptionPlan.findFirst({
+        where: { name: payload.name, is_active: true, NOT: { id } },
+      });
+      if (exists) {
+        throw new ConflictException('Bu nom bilan faol reja allaqachon mavjud!');
+      }
+    }
+
+    const updated = await this.prisma.subscriptionPlan.update({
+      where: { id },
+      data: {
+        ...(payload.name !== undefined && { name: payload.name }),
+        ...(payload.price !== undefined && { price: payload.price }),
+        ...(payload.duration_days !== undefined && { duration_days: payload.duration_days }),
+        ...(payload.features !== undefined && { features: payload.features }),
+        ...(payload.is_active !== undefined && { is_active: payload.is_active }),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Obuna rejasi muvaffaqiyatli yangilandi',
+      data: {
+        id: updated.id,
+        name: updated.name,
+        price: updated.price,
+        duration_days: updated.duration_days,
+        features: updated.features,
+        is_active: updated.is_active,
       },
     };
   }
