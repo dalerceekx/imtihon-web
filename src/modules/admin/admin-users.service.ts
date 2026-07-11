@@ -1,13 +1,81 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as argon2 from 'argon2';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../../core/database/prisma.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { ListUsersQueryDto } from './dto/list-users-query.dto';
 
 @Injectable()
 export class AdminUsersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // Barcha foydalanuvchilar ro'yxati - roli (status) va joriy obuna holati bilan birga.
+  // Admin va superadmin uchun (GET /api/admin/users)
+  async listUsers(query: ListUsersQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const where: Prisma.UserWhereInput = {
+      ...(query.role && { role: query.role }),
+      ...(query.search && {
+        OR: [
+          { username: { contains: query.search, mode: 'insensitive' } },
+          { email: { contains: query.search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+        include: {
+          subscriptions: {
+            orderBy: { created_at: 'desc' },
+            take: 1,
+            include: { plan: true },
+          },
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    const now = new Date();
+    // DB'da muddati o'tgan obunalar hali "ACTIVE" bo'lib turishi mumkin (avtomatik EXPIRED qilib
+    // qo'yadigan cron job yo'q), shuning uchun ko'rsatish uchun haqiqiy holatini shu yerda hisoblaymiz
+    const effectiveStatus = (sub: { status: string; end_date: Date | null }) =>
+      sub.status === 'ACTIVE' && sub.end_date && sub.end_date < now ? 'EXPIRED' : sub.status;
+
+    return {
+      success: true,
+      data: {
+        users: users.map((user) => {
+          const latestSubscription = user.subscriptions[0];
+
+          return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            created_at: user.created_at,
+            subscription_status: latestSubscription ? effectiveStatus(latestSubscription) : 'NO_SUBSCRIPTION',
+            subscription_plan: latestSubscription ? latestSubscription.plan.name : null,
+            subscription_end_date: latestSubscription ? latestSubscription.end_date : null,
+          };
+        }),
+        pagination: {
+          total,
+          page,
+          limit,
+          pages: Math.max(1, Math.ceil(total / limit)),
+        },
+      },
+    };
+  }
+
   async createAdmin(payload: CreateAdminDto) {
     const exists = await this.prisma.user.findFirst({
       where: {
